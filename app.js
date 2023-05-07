@@ -11,6 +11,6 @@ app.use(morgan('dev'))
 app.use('/api/v1/user', userRouter)
 app.use('/api/v1/quote', quoteRouter)
 
-app.listen(7500, () => {
+app.listen(6500, () => {
     console.log("App is running on port 7500");
 })
