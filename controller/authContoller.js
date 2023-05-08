@@ -3,6 +3,8 @@ const dbConnectionPool = require('../database/database');
 const jwt = require('jsonwebtoken')
 const cookie = require('cookie-parser')
 
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
 
 const errorProvider = (res, message, status) => {
     res.status(status).json({
@@ -15,16 +17,35 @@ exports.registration = async (req, res) => {
 
     const hashPass = await bcrypt.hash(password, 12);
 
-    dbConnectionPool.query(`INSERT INTO users SET ? `, {name, phone, password: hashPass} ,(err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    console.log(name, phone, password, hashPass)
+
+    try{
+        const user = await prisma.user.create({
+            data: {
+                name,
+                phone,
+                password: hashPass
+            }
+        })
 
         res.status(200).json({
             message: 'Registration Done, Now Please Log in.',
+            user
         })
-    })
+    }catch (err) {
+        console.log(err.message)
+    }
+
+    // dbConnectionPool.query(`INSERT INTO users SET ? `, {name, phone, password: hashPass} ,(err, result) => {
+    //     if(err){
+    //         console.log(err)
+    //         return
+    //     }
+
+    //     res.status(200).json({
+    //         message: 'Registration Done, Now Please Log in.',
+    //     })
+    // })
 }
 
 const createToken = (user, status, res) => {
