@@ -1,0 +1,29 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+// DATABASE_URL="mysql://root:Emdad@5023@127.0.0.1:3306/quotedb"
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  name     String  @db.VarChar(30)
+  phone    String  @db.VarChar(11)
+  password String  @db.VarChar(50)
+  quotes   Quote[]
+}
+
+model Quote {
+  id     Int    @id @default(autoincrement())
+  quote  String @db.VarChar(150)
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+}
