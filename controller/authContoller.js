@@ -50,7 +50,7 @@ const createToken = (user, status, res) => {
 }
 
 exports.login = async (req, res) => {
-    const {phone, password} = req.body
+    const {phone, password} = req.body;
 
     try{
         const user = await prisma.user.findUniqueOrThrow({
@@ -67,10 +67,7 @@ exports.login = async (req, res) => {
             })
         }
 
-        res.status(200).json({
-            message: 'Login Successful',
-            user
-        })
+        createToken(user, 200, res)
     }catch (err) {
         console.log(err.message)
         res.status(400).json({
