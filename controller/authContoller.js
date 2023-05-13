@@ -49,27 +49,29 @@ const createToken = (user, status, res) => {
     })
 }
 
-exports.login = (req, res) => {
-    const {phone, password} = req.body
+exports.login = async (req, res) => {
+    const {phone, password} = req.body;
 
-    dbConnectionPool.query(`SELECT * FROM users WHERE phone='${phone}'`, async (err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    try{
+        const user = await prisma.user.findUniqueOrThrow({
+            where: {
+                phone,
+            }
+        })
 
-        if(result.length == 0) {
-            return errorProvider(res, 'No User found', 404);
-        }
+        const compare = await bcrypt.compare(password, user.password)
 
-        const user = result;
-        const compare = await bcrypt.compare(password, user[0].password)
-        
         if(!compare) {
-            return errorProvider(res, 'Password error', 403);
+            return res.status(403).json({
+                status: 'password wrong'
+            })
         }
 
-        createToken(user[0], 201, res)
-    })
-
+        createToken(user, 200, res)
+    }catch (err) {
+        console.log(err.message)
+        res.status(400).json({
+            message: err.message
+        })
+    }
 }
