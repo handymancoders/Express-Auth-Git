@@ -9,7 +9,7 @@ router.route('/create')
 router.route('/all-quote')
     .get(getAllQuote)
 
-router.route('/user/:id')
+router.route('/user-specific')
     .get(tokenChecker, getSpecificQuote)
 
 module.exports = router;

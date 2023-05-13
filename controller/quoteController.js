@@ -1,6 +1,9 @@
 const jwt = require('jsonwebtoken')
 const dbConnectionPool = require('../database/database')
 
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
+
 const errorProvider = (res, message, status) => {
     res.status(status).json({
         message,
@@ -8,73 +11,89 @@ const errorProvider = (res, message, status) => {
 }
 
 
-exports.tokenChecker = (req, res, next) => {
+exports.tokenChecker = async (req, res, next) => {
     const token = req.headers?.cookie
     if(!token) {
-       return errorProvider(res, 'Not Valid Token', 403);
+       return errorProvider(res, 'invalid Token', 403);
     }
 
     const jwtVerification = jwt.verify(token.split('=')[1], 'superSecret')
-    dbConnectionPool.query(`SELECT * FROM users WHERE phone='${jwtVerification.phone}'`, async (err, result) => {
-        if(err){
-            console.log(err)
-            return
+    const user = await prisma.user.findUniqueOrThrow({
+        where: {
+            phone: jwtVerification.phone
         }
-
-        if(result.length == 0) {
-            return errorProvider(res, 'Not valid Token', 404);
-        }
-
-        req.user = result[0];
-
-        next()
     })
-    
+
+    if(!user) {
+        return errorProvider(res, 'invalid token', 403)
+    }
+
+    req.user = user;
+
+    next()
 }
 
 exports.createQuote = async (req, res) => {
     const {quote} = req.body
-
-    dbConnectionPool.query(`INSERT INTO quotes SET ? `, {quote, user_id: req.user.user_id} ,(err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    
+    try{
+        const createdQuote = await prisma.quote.create({
+            data: {
+                quote,
+                userId: req.user.id
+            }
+        })
 
         res.status(200).json({
-            message: 'Quote created',
-            quote,
+            message: 'Quote Added',
+            createdQuote
         })
-    })
+    }catch (err) {
+        console.log(err.message)
+        res.status(400).json({
+            status: 'Unsuccessful',
+            message: err.message
+        })
+    }
 }
 
 exports.getAllQuote = async (req, res) => {
 
-    dbConnectionPool.query(`SELECT * FROM quotes`, (err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    try{
+        const quotes = await prisma.quote.findMany()
 
         res.status(200).json({
-            message: 'Success',
-            quotes: result,
+            count: quotes.length,
+            quotes
         })
-    })
+    }catch (err) {
+        console.log(err.message)
+        res.status(400).json({
+            status: 'Unsuccessful',
+            message: err.message
+        })
+    }
 }
 
 exports.getSpecificQuote = async (req, res) => {
-    const {id} = req.params;
+    const {id} = req.user;
 
-    dbConnectionPool.query(`SELECT * FROM quotes WHERE user_id=${id}`, (err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    try{
+        const quotes = await prisma.quote.findMany({
+            where: {
+                userId: id
+            }
+        })
 
         res.status(200).json({
-            message: 'Success',
-            quotes: result,
+            count: quotes.length,
+            quotes
         })
-    })
+    }catch (err) {
+        console.log(err.message)
+        res.status(400).json({
+            status: 'Unsuccessful',
+            message: err.message
+        })
+    }
 }
