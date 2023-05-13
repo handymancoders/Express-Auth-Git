@@ -35,17 +35,6 @@ exports.registration = async (req, res) => {
     }catch (err) {
         console.log(err.message)
     }
-
-    // dbConnectionPool.query(`INSERT INTO users SET ? `, {name, phone, password: hashPass} ,(err, result) => {
-    //     if(err){
-    //         console.log(err)
-    //         return
-    //     }
-
-    //     res.status(200).json({
-    //         message: 'Registration Done, Now Please Log in.',
-    //     })
-    // })
 }
 
 const createToken = (user, status, res) => {
