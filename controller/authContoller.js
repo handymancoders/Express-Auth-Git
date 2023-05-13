@@ -1,7 +1,5 @@
 const bcrypt = require('bcrypt');
-const dbConnectionPool = require('../database/database');
 const jwt = require('jsonwebtoken')
-const cookie = require('cookie-parser')
 
 const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
@@ -14,10 +12,7 @@ const errorProvider = (res, message, status) => {
 
 exports.registration = async (req, res) => {
     const {name, phone, password} = req.body
-
     const hashPass = await bcrypt.hash(password, 12);
-
-    console.log(name, phone, password, hashPass)
 
     try{
         const user = await prisma.user.create({
@@ -34,6 +29,10 @@ exports.registration = async (req, res) => {
         })
     }catch (err) {
         console.log(err.message)
+        res.status(200).json({
+            status: 'Registration Error',
+            message: err.message
+        })
     }
 }
 
