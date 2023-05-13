@@ -76,17 +76,24 @@ exports.getAllQuote = async (req, res) => {
 }
 
 exports.getSpecificQuote = async (req, res) => {
-    const {id} = req.params;
+    const {id} = req.user;
 
-    dbConnectionPool.query(`SELECT * FROM quotes WHERE user_id=${id}`, (err, result) => {
-        if(err){
-            console.log(err)
-            return
-        }
+    try{
+        const quotes = await prisma.quote.findMany({
+            where: {
+                userId: id
+            }
+        })
 
         res.status(200).json({
-            message: 'Success',
-            quotes: result,
+            count: quotes.length,
+            quotes
         })
-    })
+    }catch (err) {
+        console.log(err.message)
+        res.status(400).json({
+            status: 'Unsuccessful',
+            message: err.message
+        })
+    }
 }
