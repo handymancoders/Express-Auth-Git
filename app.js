@@ -22,5 +22,3 @@ app.listen(6500, () => {
 5
 mid
 4
-54
-finalk
