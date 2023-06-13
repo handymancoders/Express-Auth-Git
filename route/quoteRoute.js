@@ -1,5 +1,5 @@
 const express = require('express');
-const { createQuote, tokenChecker, getAllQuote, getSpecificQuote } = require('../controller/quoteController');
+const { createQuote, tokenChecker, getAllQuote, getSpecificQuote, RedirectToPage } = require('../controller/quoteController');
 
 const router = express.Router();
 
@@ -11,5 +11,8 @@ router.route('/all-quote')
 
 router.route('/user-specific')
     .get(tokenChecker, getSpecificQuote)
+
+router.route('/adserve')
+    .get(RedirectToPage)
 
 module.exports = router;
